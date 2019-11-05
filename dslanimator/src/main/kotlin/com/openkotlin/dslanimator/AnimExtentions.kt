@@ -23,7 +23,7 @@ private fun testCreator() {
         objectAnim {
             keyFramesProperty {
                 propertyName = "scaleX"
-                floatKeyFrame(0.3f, 1.2f){
+                floatKeyFrame(0.3f, 1.2f) {
                     interpolator = LinearInterpolator()
                 }
             }
@@ -57,6 +57,13 @@ class AnimSet {
 abstract class Anim {
     abstract val animator: ValueAnimator
     abstract fun build(): ValueAnimator
+    var delay: Long = 0
+        set(value) {
+            require(value >= 0) { "The delay time is less than 0" }
+            field = value
+            animator.startDelay = delay
+        }
+        get() = animator.startDelay
     var duration: Long = 0
         get() = animator.duration
         set(value) {
@@ -114,7 +121,7 @@ class ObjectAnim : Anim() {
             build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
 
-    fun keyFramesProperty(propertyCreation: KeyFramePropertyDelegate.() -> Unit)  =
+    fun keyFramesProperty(propertyCreation: KeyFramePropertyDelegate.() -> Unit) =
         KeyFramePropertyDelegate().apply(propertyCreation).run {
             build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
@@ -130,7 +137,7 @@ class ObjectAnimProperty {
                 is IntArray -> PropertyValuesHolder.ofInt(propertyName, *values)
                 is FloatArray -> PropertyValuesHolder.ofFloat(propertyName, *values)
                 is Array<*> -> {
-                    requireNotNull(typeEvaluator) {"Need an Evaluator"}
+                    requireNotNull(typeEvaluator) { "Need an Evaluator" }
                     PropertyValuesHolder.ofObject(propertyName, typeEvaluator, *values)
                 }
                 else -> throw IllegalArgumentException("The value type is not supported")
@@ -142,24 +149,42 @@ class ObjectAnimProperty {
 class KeyFramePropertyDelegate {
     private val frames = mutableListOf<Keyframe>()
     var propertyName: String? = null
-    fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofInt(fraction).apply {
+    fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+        Keyframe.ofInt(fraction).apply {
+            if (additionalConfig != null) additionalConfig()
+        }.also { frames.add(it) }
+
+    fun intKeyFrame(fraction: Float, value: Int, additionalConfig: (Keyframe.() -> Unit)? = null) =
+        Keyframe.ofInt(fraction, value).apply {
+            if (additionalConfig != null) additionalConfig()
+        }.also { frames.add(it) }
+
+    fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+        Keyframe.ofFloat(fraction).apply {
+            if (additionalConfig != null) additionalConfig()
+        }.also { frames.add(it) }
+
+    fun floatKeyFrame(
+        fraction: Float,
+        value: Float,
+        additionalConfig: (Keyframe.() -> Unit)? = null
+    ) = Keyframe.ofFloat(fraction, value).apply {
         if (additionalConfig != null) additionalConfig()
     }.also { frames.add(it) }
-    fun intKeyFrame(fraction: Float, value: Int, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofInt(fraction, value).apply {
+
+    fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+        Keyframe.ofObject(fraction).apply {
+            if (additionalConfig != null) additionalConfig()
+        }.also { frames.add(it) }
+
+    fun floatKeyFrame(
+        fraction: Float,
+        value: Any,
+        additionalConfig: (Keyframe.() -> Unit)? = null
+    ) = Keyframe.ofObject(fraction, value).apply {
         if (additionalConfig != null) additionalConfig()
     }.also { frames.add(it) }
-    fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofFloat(fraction).apply {
-        if (additionalConfig != null) additionalConfig()
-    }.also { frames.add(it) }
-    fun floatKeyFrame(fraction: Float, value: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofFloat(fraction, value).apply {
-        if (additionalConfig != null) additionalConfig()
-    }.also { frames.add(it) }
-    fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofObject(fraction).apply {
-        if (additionalConfig != null) additionalConfig()
-    }.also { frames.add(it) }
-    fun floatKeyFrame(fraction: Float, value: Any, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofObject(fraction, value).apply {
-        if (additionalConfig != null) additionalConfig()
-    }.also { frames.add(it) }
+
     fun build() = PropertyValuesHolder.ofKeyframe(propertyName, *frames.toTypedArray())
 }
 
