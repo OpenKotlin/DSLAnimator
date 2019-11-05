@@ -21,10 +21,11 @@ private fun testCreator() {
             }
         }
         objectAnim {
-            target = //view
-            property {
+            keyFramesProperty {
                 propertyName = "scaleX"
-                values = floatArrayOf(1f, 1.1f, 1.5f, 1.3f)
+                floatKeyFrame(0.3f, 1.2f){
+                    interpolator = LinearInterpolator()
+                }
             }
         }
     }
@@ -84,28 +85,8 @@ abstract class Anim {
         }
         get() = animator.repeatCount
 
-    var values: Any? = null
-        set(value) {
-            field = value
-            animator.setObjectValues()
-            value?.let {
-                intArrayOf()
-                when (it) {
-                    is FloatArray -> animator.setFloatValues(*it)
-                    is IntArray -> animator.setIntValues(*it)
-                    is Array<*> -> animator.setObjectValues(*it)
-                    else -> throw IllegalArgumentException("The value type is not supported")
-                }
-            }
-        }
-
-    fun action(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
-        animation.animatedValue?.let { ac.invoke(it) }
-    }
-
     fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) =
         animator.setEvaluator(eval)
-
 }
 
 class ObjectAnim : Anim() {
@@ -133,35 +114,76 @@ class ObjectAnim : Anim() {
             build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
 
+    fun keyFramesProperty(propertyCreation: KeyFramePropertyDelegate.() -> Unit)  =
+        KeyFramePropertyDelegate().apply(propertyCreation).run {
+            build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
+        }
 }
 
 class ObjectAnimProperty {
     var propertyName: String? = null
     var values: Any? = null
+    var typeEvaluator: TypeEvaluator<out Any>? = null
     fun build(): PropertyValuesHolder? = propertyName?.let { propertyName ->
         values?.let { values ->
             return when (values) {
                 is IntArray -> PropertyValuesHolder.ofInt(propertyName, *values)
                 is FloatArray -> PropertyValuesHolder.ofFloat(propertyName, *values)
+                is Array<*> -> {
+                    requireNotNull(typeEvaluator) {"Need an Evaluator"}
+                    PropertyValuesHolder.ofObject(propertyName, typeEvaluator, *values)
+                }
                 else -> throw IllegalArgumentException("The value type is not supported")
             }
         }
     }
 }
 
+class KeyFramePropertyDelegate {
+    private val frames = mutableListOf<Keyframe>()
+    var propertyName: String? = null
+    fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofInt(fraction).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun intKeyFrame(fraction: Float, value: Int, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofInt(fraction, value).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofFloat(fraction).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun floatKeyFrame(fraction: Float, value: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofFloat(fraction, value).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofObject(fraction).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun floatKeyFrame(fraction: Float, value: Any, additionalConfig: (Keyframe.() -> Unit)? = null) = Keyframe.ofObject(fraction, value).apply {
+        if (additionalConfig != null) additionalConfig()
+    }.also { frames.add(it) }
+    fun build() = PropertyValuesHolder.ofKeyframe(propertyName, *frames.toTypedArray())
+}
+
+
 class ValueAnim : Anim() {
 
     override val animator = ValueAnimator()
 
     override fun build(): ValueAnimator = animator
-
-    var action: ((Any) -> Unit)? = null
+    var values: Any? = null
         set(value) {
             field = value
-            animator.addUpdateListener { valueAnimator ->
-                valueAnimator.animatedValue?.let { value?.invoke(it) }
+            value?.let {
+                intArrayOf()
+                when (it) {
+                    is FloatArray -> animator.setFloatValues(*it)
+                    is IntArray -> animator.setIntValues(*it)
+                    is Array<*> -> animator.setObjectValues(*it)
+                    else -> throw IllegalArgumentException("The value type is not supported")
+                }
             }
         }
 
-
+    fun action(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
+        animation.animatedValue?.let { ac.invoke(it) }
+    }
 }
