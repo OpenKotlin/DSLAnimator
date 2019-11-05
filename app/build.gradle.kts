@@ -22,11 +22,13 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+    sourceSets["main"].java.srcDir("src/main/kotlin")
 }
 
 dependencies {
     implementation(fileTree("dir" to "libs", "include" to listOf("*.jar")))
     implementation(kotlin("stdlib-jdk7", KotlinCompilerVersion.VERSION))
+    implementation(project(":dslanimator"))
     implementation("androidx.appcompat:appcompat:1.1.0")
     implementation("androidx.core:core-ktx:1.1.0")
     testImplementation("junit:junit:4.12")
