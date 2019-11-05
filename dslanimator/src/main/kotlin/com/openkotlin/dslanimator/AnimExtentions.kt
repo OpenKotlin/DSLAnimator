@@ -27,7 +27,6 @@ private fun testCreator() {
                 values = floatArrayOf(1f, 1.1f, 1.5f, 1.3f)
             }
         }
-        start()
     }
 }
 
@@ -50,12 +49,7 @@ class AnimSet {
         playTogether(animList.map {
             it.build()
         })
-    }
-
-    fun start() {
-        val animatorSet = build()
-        if (delay > 0) animatorSet.startDelay = delay
-        animatorSet.start()
+        if (delay > 0) startDelay = delay
     }
 }
 
