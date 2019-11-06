@@ -114,7 +114,7 @@ class ObjectAnim : Anim() {
 
     fun keyframes(propertyCreation: KeyFramePropertyDelegate.() -> Unit) =
         KeyFramePropertyDelegate().apply(propertyCreation).run {
-            build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
+            build().let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
 }
 
