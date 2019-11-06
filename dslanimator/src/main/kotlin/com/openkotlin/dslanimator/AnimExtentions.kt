@@ -121,7 +121,10 @@ class ObjectAnim : Anim() {
 class ObjectAnimProperty {
     var propertyName: String? = null
     var values: Any? = null
-    var typeEvaluator: TypeEvaluator<out Any>? = null
+    private var typeEvaluator: TypeEvaluator<out Any>? = null
+    fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) {
+        typeEvaluator = TypeEvaluator(eval)
+    }
     fun build(): PropertyValuesHolder? = propertyName?.let { propertyName ->
         values?.let { values ->
             return when (values) {

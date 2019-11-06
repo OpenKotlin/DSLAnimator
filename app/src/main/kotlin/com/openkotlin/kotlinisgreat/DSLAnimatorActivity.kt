@@ -87,6 +87,10 @@ class DSLAnimatorActivity: AppCompatActivity(), View.OnClickListener {
                 propertyName = "scaleX"
                 values = floatArrayOf(1f, 1.1f, 1.3f, 1.1f, 1f)
             }
+            property {
+                propertyName = "scaleY"
+                values = floatArrayOf(1f, 1.1f, 1.3f, 1.1f, 1f)
+            }
         }
 
     private fun buildAnimatorSet() =
