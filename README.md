@@ -1,8 +1,5 @@
-# KotlinIsGreat
-This repository aims to use kotlin to implement or combine some functionality which I think are good.
-
-## DSL Animator
-With this tool, you can write the animator in a DSL style which has a more clearly structure to read and easier to write.
+# DSL Animator
+DSL Animator is a library which can let you write the animator in a DSL style which has a more clearly structure to read and easier to write. Just like building block.
 
 ### Code samples:
 
