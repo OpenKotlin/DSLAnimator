@@ -73,7 +73,9 @@ animatorSet.start()
 
 - ValueAnimator
 <img src="./art/dsl_animator_value.gif" width="40%"/>
+
 - ObjectAnimator
 <img src="./art/dsl_animator_obj.gif" width="40%"/>
+
 - AnimatorSet
 <img src="./art/dsl_animator_set.gif" width="40%"/>
