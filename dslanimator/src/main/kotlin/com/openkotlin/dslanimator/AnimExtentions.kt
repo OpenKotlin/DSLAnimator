@@ -1,43 +1,36 @@
 package com.openkotlin.dslanimator
 
 import android.animation.*
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.LinearInterpolator
 
 fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
 fun valueAnim(creator: ValueAnim.() -> Unit) = ValueAnim().apply(creator).build()
 fun objectAnim(creator: ObjectAnim.() -> Unit) = ObjectAnim().apply(creator).build()
 
-private fun testCreator() =
-    animSet {
-        valueAnim {
-            duration = 300L
-            repeatMode = ValueAnimator.INFINITE
-            repeatCount = 3
-            values = arrayOf(1, 2, 3)
-            interpolator = AccelerateInterpolator()
-            action {
-
-            }
-        }
-        objectAnim {
-            keyFramesProperty {
-                propertyName = "scaleX"
-                floatKeyFrame(0.3f, 1.2f) {
-                    interpolator = LinearInterpolator()
-                }
-            }
-        }
-    }
-
 class AnimSet {
     private val animList by lazy { mutableListOf<Anim>() }
+    private val animatorSet = AnimatorSet()
+    var duration = -1L
+        set(value) {
+            field = value
+            animatorSet.duration = value
+        }
+        get() = animatorSet.duration
 
     var delay = 0L
         set(value) {
             require(value >= 0) { "The delay time is less than 0" }
             field = value
+            animatorSet.startDelay = value
         }
+        get() = animatorSet.startDelay
+
+    var interpolator: TimeInterpolator = LinearInterpolator()
+        set(value) {
+            field = value
+            animatorSet.interpolator = value
+        }
+        get() = animatorSet.interpolator
 
     fun valueAnim(animCreation: ValueAnim.() -> Unit) =
         ValueAnim().apply(animCreation).also { animList.add(it) }
@@ -45,11 +38,10 @@ class AnimSet {
     fun objectAnim(animCreation: ObjectAnim.() -> Unit) =
         ObjectAnim().apply(animCreation).also { animList.add(it) }
 
-    fun build() = AnimatorSet().apply {
-        playTogether(animList.map {
-            it.build()
+    fun build() = animatorSet.apply {
+        playTogether(animList.map { anim ->
+            anim.build()
         })
-        if (delay > 0) startDelay = delay
     }
 }
 
@@ -77,7 +69,7 @@ abstract class Anim {
         }
         get() = animator.interpolator
 
-    var repeatMode: Int = ValueAnimator.INFINITE
+    var repeatMode: Int = -1
         set(value) {
             animator.repeatMode = value
             field = repeatMode
@@ -120,7 +112,7 @@ class ObjectAnim : Anim() {
             build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
 
-    fun keyFramesProperty(propertyCreation: KeyFramePropertyDelegate.() -> Unit) =
+    fun keyframes(propertyCreation: KeyFramePropertyDelegate.() -> Unit) =
         KeyFramePropertyDelegate().apply(propertyCreation).run {
             build()?.let { propertyValuesHolder -> properties.add(propertyValuesHolder) }
         }
@@ -148,17 +140,21 @@ class ObjectAnimProperty {
 class KeyFramePropertyDelegate {
     private val frames = mutableListOf<Keyframe>()
     var propertyName: String? = null
-    fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+    fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofInt(fraction).apply {
             if (additionalConfig != null) additionalConfig()
         }.also { frames.add(it) }
 
-    fun intKeyFrame(fraction: Float, value: Int, additionalConfig: (Keyframe.() -> Unit)? = null) =
+    fun intKeyFrame(
+        fraction: Float,
+        value: Int,
+        additionalConfig: (Keyframe.() -> Unit)? = null
+    ): Keyframe =
         Keyframe.ofInt(fraction, value).apply {
             if (additionalConfig != null) additionalConfig()
         }.also { frames.add(it) }
 
-    fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+    fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofFloat(fraction).apply {
             if (additionalConfig != null) additionalConfig()
         }.also { frames.add(it) }
@@ -167,24 +163,25 @@ class KeyFramePropertyDelegate {
         fraction: Float,
         value: Float,
         additionalConfig: (Keyframe.() -> Unit)? = null
-    ) = Keyframe.ofFloat(fraction, value).apply {
+    ): Keyframe = Keyframe.ofFloat(fraction, value).apply {
         if (additionalConfig != null) additionalConfig()
     }.also { frames.add(it) }
 
-    fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null) =
+    fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofObject(fraction).apply {
             if (additionalConfig != null) additionalConfig()
         }.also { frames.add(it) }
 
-    fun floatKeyFrame(
+    fun objectKeyFrame(
         fraction: Float,
         value: Any,
         additionalConfig: (Keyframe.() -> Unit)? = null
-    ) = Keyframe.ofObject(fraction, value).apply {
+    ): Keyframe = Keyframe.ofObject(fraction, value).apply {
         if (additionalConfig != null) additionalConfig()
     }.also { frames.add(it) }
 
-    fun build() = PropertyValuesHolder.ofKeyframe(propertyName, *frames.toTypedArray())
+    fun build(): PropertyValuesHolder =
+        PropertyValuesHolder.ofKeyframe(propertyName, *frames.toTypedArray())
 }
 
 
