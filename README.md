@@ -3,7 +3,9 @@ This repository aims to use kotlin to implement or combine some functionality wh
 
 ## DSL Animator
 With this tool, you can write the animator in a DSL style which has a more clearly structure to read and easier to write.
-##Code samples:
+
+### Code samples:
+
 - ValueAnimator
 ```kotlin
 val valueAnimator =
@@ -66,7 +68,9 @@ val animatorSet =
     }
 animatorSet.start()
 ```
-###Screenshots
+
+### Screenshots
+
 - ValueAnimator
 <img src="./art/dsl_animator_value.gif" width="40%"/>
 - ObjectAnimator
