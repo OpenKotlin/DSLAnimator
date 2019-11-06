@@ -8,7 +8,7 @@ fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
 fun valueAnim(creator: ValueAnim.() -> Unit) = ValueAnim().apply(creator).build()
 fun objectAnim(creator: ObjectAnim.() -> Unit) = ObjectAnim().apply(creator).build()
 
-private fun testCreator() {
+private fun testCreator() =
     animSet {
         valueAnim {
             duration = 300L
@@ -29,7 +29,6 @@ private fun testCreator() {
             }
         }
     }
-}
 
 class AnimSet {
     private val animList by lazy { mutableListOf<Anim>() }
