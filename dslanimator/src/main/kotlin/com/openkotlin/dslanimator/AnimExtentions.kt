@@ -7,47 +7,9 @@ fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
 fun valueAnim(creator: ValueAnim.() -> Unit) = ValueAnim().apply(creator).build()
 fun objectAnim(creator: ObjectAnim.() -> Unit) = ObjectAnim().apply(creator).build()
 
-class AnimSet {
-    private val animList by lazy { mutableListOf<Anim>() }
-    private val animatorSet = AnimatorSet()
-    var duration = -1L
-        set(value) {
-            field = value
-            animatorSet.duration = value
-        }
-        get() = animatorSet.duration
-
-    var delay = 0L
-        set(value) {
-            require(value >= 0) { "The delay time is less than 0" }
-            field = value
-            animatorSet.startDelay = value
-        }
-        get() = animatorSet.startDelay
-
-    var interpolator: TimeInterpolator = LinearInterpolator()
-        set(value) {
-            field = value
-            animatorSet.interpolator = value
-        }
-        get() = animatorSet.interpolator
-
-    fun valueAnim(animCreation: ValueAnim.() -> Unit) =
-        ValueAnim().apply(animCreation).also { animList.add(it) }
-
-    fun objectAnim(animCreation: ObjectAnim.() -> Unit) =
-        ObjectAnim().apply(animCreation).also { animList.add(it) }
-
-    fun build() = animatorSet.apply {
-        playTogether(animList.map { anim ->
-            anim.build()
-        })
-    }
-}
-
 abstract class Anim {
-    abstract val animator: ValueAnimator
-    abstract fun build(): ValueAnimator
+    abstract val animator: Animator
+    abstract fun build(): Animator
     var delay: Long = 0
         set(value) {
             require(value >= 0) { "The delay time is less than 0" }
@@ -68,6 +30,57 @@ abstract class Anim {
             field = value
         }
         get() = animator.interpolator
+}
+
+class AnimSet : Anim() {
+    private val animList by lazy { mutableListOf<Anim>() }
+    override val animator = AnimatorSet()
+    var style = PLAY_TOGETHER
+
+    fun valueAnim(animCreation: ValueAnim.() -> Unit) =
+        ValueAnim().apply(animCreation).also { animList.add(it) }
+
+    fun objectAnim(animCreation: ObjectAnim.() -> Unit) =
+        ObjectAnim().apply(animCreation).also { animList.add(it) }
+
+    fun animSet(animCreation: AnimSet.() -> Unit) =
+        AnimSet().apply(animCreation).also { animList.add(it) }
+
+    override fun build() = animator.apply {
+        when(style){
+            PLAY_TOGETHER -> playTogether(animList.map { anim ->
+                anim.build()
+            })
+            PLAY_SEQUENTIALLY -> playSequentially(animList.map { anim ->
+                anim.build()
+            })
+        }
+    }
+
+    companion object {
+        const val PLAY_TOGETHER = 1
+        const val PLAY_SEQUENTIALLY = 2
+    }
+}
+
+open class ValueAnim : Anim() {
+
+    override val animator = ValueAnimator()
+
+    override fun build(): ValueAnimator = animator
+    var values: Any? = null
+        set(value) {
+            field = value
+            value?.let {
+                intArrayOf()
+                when (it) {
+                    is FloatArray -> animator.setFloatValues(*it)
+                    is IntArray -> animator.setIntValues(*it)
+                    is Array<*> -> animator.setObjectValues(*it)
+                    else -> throw IllegalArgumentException("The value type is not supported")
+                }
+            }
+        }
 
     var repeatMode: Int = -1
         set(value) {
@@ -85,9 +98,13 @@ abstract class Anim {
 
     fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) =
         animator.setEvaluator(eval)
+
+    fun action(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
+        animation.animatedValue?.let { ac.invoke(it) }
+    }
 }
 
-class ObjectAnim : Anim() {
+class ObjectAnim : ValueAnim() {
 
     override val animator = ObjectAnimator()
 
@@ -125,6 +142,7 @@ class ObjectAnimProperty {
     fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) {
         typeEvaluator = TypeEvaluator(eval)
     }
+
     fun build(): PropertyValuesHolder? = propertyName?.let { propertyName ->
         values?.let { values ->
             return when (values) {
@@ -188,26 +206,3 @@ class KeyFramePropertyDelegate {
 }
 
 
-class ValueAnim : Anim() {
-
-    override val animator = ValueAnimator()
-
-    override fun build(): ValueAnimator = animator
-    var values: Any? = null
-        set(value) {
-            field = value
-            value?.let {
-                intArrayOf()
-                when (it) {
-                    is FloatArray -> animator.setFloatValues(*it)
-                    is IntArray -> animator.setIntValues(*it)
-                    is Array<*> -> animator.setObjectValues(*it)
-                    else -> throw IllegalArgumentException("The value type is not supported")
-                }
-            }
-        }
-
-    fun action(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
-        animation.animatedValue?.let { ac.invoke(it) }
-    }
-}
