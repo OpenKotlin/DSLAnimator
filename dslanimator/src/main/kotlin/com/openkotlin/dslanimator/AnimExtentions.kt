@@ -96,6 +96,12 @@ open class ValueAnim : Anim() {
         }
         get() = animator.repeatCount
 
+    var evaluator: TypeEvaluator<*>? = null
+        set(value) {
+            animator.setEvaluator(value)
+            field = value
+        }
+
     fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) =
         animator.setEvaluator(eval)
 
