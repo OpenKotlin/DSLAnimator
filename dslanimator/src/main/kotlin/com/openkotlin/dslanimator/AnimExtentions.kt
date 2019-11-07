@@ -169,7 +169,7 @@ class KeyFramePropertyDelegate {
     var propertyName: String? = null
     fun intKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofInt(fraction).apply {
-            if (additionalConfig != null) additionalConfig()
+            additionalConfig?.invoke(this)
         }.also { frames.add(it) }
 
     fun intKeyFrame(
@@ -178,12 +178,12 @@ class KeyFramePropertyDelegate {
         additionalConfig: (Keyframe.() -> Unit)? = null
     ): Keyframe =
         Keyframe.ofInt(fraction, value).apply {
-            if (additionalConfig != null) additionalConfig()
+            additionalConfig?.invoke(this)
         }.also { frames.add(it) }
 
     fun floatKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofFloat(fraction).apply {
-            if (additionalConfig != null) additionalConfig()
+            additionalConfig?.invoke(this)
         }.also { frames.add(it) }
 
     fun floatKeyFrame(
@@ -191,12 +191,12 @@ class KeyFramePropertyDelegate {
         value: Float,
         additionalConfig: (Keyframe.() -> Unit)? = null
     ): Keyframe = Keyframe.ofFloat(fraction, value).apply {
-        if (additionalConfig != null) additionalConfig()
+        additionalConfig?.invoke(this)
     }.also { frames.add(it) }
 
     fun objectKeyFrame(fraction: Float, additionalConfig: (Keyframe.() -> Unit)? = null): Keyframe =
         Keyframe.ofObject(fraction).apply {
-            if (additionalConfig != null) additionalConfig()
+            additionalConfig?.invoke(this)
         }.also { frames.add(it) }
 
     fun objectKeyFrame(
@@ -204,7 +204,7 @@ class KeyFramePropertyDelegate {
         value: Any,
         additionalConfig: (Keyframe.() -> Unit)? = null
     ): Keyframe = Keyframe.ofObject(fraction, value).apply {
-        if (additionalConfig != null) additionalConfig()
+        additionalConfig?.invoke(this)
     }.also { frames.add(it) }
 
     fun build(): PropertyValuesHolder =
