@@ -2,7 +2,6 @@ package com.openkotlin.dslanimator
 
 import android.animation.*
 import android.view.View
-import android.view.animation.LinearInterpolator
 
 fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
 fun valueAnim(creator: ValueAnim.() -> Unit) = ValueAnim().apply(creator).build()
@@ -17,20 +16,18 @@ abstract class Anim {
             field = value
             animator.startDelay = delay
         }
-        get() = animator.startDelay
+
     var duration: Long = 0
-        get() = animator.duration
         set(value) {
             animator.duration = value
             field = value
         }
 
-    var interpolator: TimeInterpolator = LinearInterpolator()
+    var interpolator: TimeInterpolator? = null
         set(value) {
             animator.interpolator = value
             field = value
         }
-        get() = animator.interpolator
 }
 
 class AnimSet : Anim() {
@@ -94,14 +91,12 @@ open class ValueAnim : Anim() {
             animator.repeatMode = value
             field = repeatMode
         }
-        get() = animator.repeatMode
 
     var repeatCount: Int = 0
         set(value) {
             animator.repeatCount = value
             field = repeatCount
         }
-        get() = animator.repeatCount
 
     var evaluator: TypeEvaluator<*>? = null
         set(value) {
@@ -135,7 +130,6 @@ class ObjectAnim : ValueAnim() {
             animator.target = value
             field = value
         }
-        get() = animator.target
 
     fun property(propertyCreation: ObjectAnimProperty.() -> Unit) =
         ObjectAnimProperty().apply(propertyCreation).run {
