@@ -69,7 +69,7 @@ class DSLAnimatorActivity: AppCompatActivity(), View.OnClickListener {
             evaluator { fraction, startValue, endValue ->
                 (endValue as Float - startValue as Float) * fraction
             }
-            action {
+            doOnValueUpdated {
                 ivLoading.rotation = it as Float
             }
         }
@@ -102,7 +102,7 @@ class DSLAnimatorActivity: AppCompatActivity(), View.OnClickListener {
                 evaluator { fraction, startValue, endValue ->
                     (endValue as Float - startValue as Float) * fraction
                 }
-                action {
+                doOnValueUpdated {
                     ivLoading.alpha = it as Float
                 }
             }

@@ -112,7 +112,7 @@ open class ValueAnim : Anim() {
     fun evaluator(eval: (fraction: Float, startValue: Any, endValue: Any) -> Any) =
         animator.setEvaluator(eval)
 
-    fun action(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
+    fun doOnValueUpdated(ac: (Any) -> Unit) = animator.addUpdateListener { animation ->
         animation.animatedValue?.let { ac.invoke(it) }
     }
 }

@@ -14,7 +14,7 @@ val valueAnimator =
         evaluator { fraction, startValue, endValue ->
             (endValue as Float - startValue as Float) * fraction
         }
-        action {
+        doOnValueUpdated {
             ivLoading.rotation = it as Float
         }
     }
@@ -49,7 +49,7 @@ val animatorSet =
             evaluator { fraction, startValue, endValue ->
                 (endValue as Float - startValue as Float) * fraction
             }
-            action {
+            doOnValueUpdated {
                 ivLoading.alpha = it as Float
             }
         }
