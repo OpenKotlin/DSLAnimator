@@ -1,6 +1,7 @@
 package com.openkotlin.dslanimator
 
 import android.animation.*
+import android.view.View
 import android.view.animation.LinearInterpolator
 
 fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
@@ -36,12 +37,18 @@ class AnimSet : Anim() {
     private val animList by lazy { mutableListOf<Anim>() }
     override val animator = AnimatorSet()
     var style = PLAY_TOGETHER
+    var target: View? = null
 
     fun valueAnim(animCreation: ValueAnim.() -> Unit) =
         ValueAnim().apply(animCreation).also { animList.add(it) }
 
     fun objectAnim(animCreation: ObjectAnim.() -> Unit) =
-        ObjectAnim().apply(animCreation).also { animList.add(it) }
+        ObjectAnim().apply(animCreation).also { objectAnim ->
+            this@AnimSet.target?.let { animSetTarget ->
+                if (objectAnim.target == null) objectAnim.target = animSetTarget
+            }
+            animList.add(objectAnim)
+        }
 
     fun animSet(animCreation: AnimSet.() -> Unit) =
         AnimSet().apply(animCreation).also { animList.add(it) }
