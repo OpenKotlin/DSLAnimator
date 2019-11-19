@@ -1,6 +1,7 @@
 package com.openkotlin.dslanimator
 
 import android.animation.*
+import android.animation.Animator.AnimatorListener
 import android.view.View
 
 fun animSet(creator: AnimSet.() -> Unit) = AnimSet().apply(creator).build()
@@ -10,11 +11,11 @@ fun objectAnim(creator: ObjectAnim.() -> Unit) = ObjectAnim().apply(creator).bui
 abstract class Anim {
     abstract val animator: Animator
     abstract fun build(): Animator
-    var delay: Long = 0
+    var startDelay: Long = 0
         set(value) {
             require(value >= 0) { "The delay time is less than 0" }
             field = value
-            animator.startDelay = delay
+            animator.startDelay = startDelay
         }
 
     var duration: Long = 0
@@ -28,6 +29,81 @@ abstract class Anim {
             animator.interpolator = value
             field = value
         }
+
+    private var onRepeatAction: ((Animator?) -> Unit)? = null
+
+    private var onEndAction: ((Animator?) -> Unit)? = null
+
+    private var onCancelAction: ((Animator?) -> Unit)? = null
+
+    private var onStartAction: ((Animator?) -> Unit)? = null
+
+    private var onPauseAction: ((Animator?) -> Unit)? = null
+
+    private var onResumeAction: ((Animator?) -> Unit)? = null
+
+    private var animatorListener: AnimatorListener? = null
+
+    private var animatorPauseListener: Animator.AnimatorPauseListener? = null
+
+    private fun createAnimatorListener() = object: AnimatorListener {
+            override fun onAnimationRepeat(animation: Animator?) {
+                onRepeatAction?.invoke(animation)
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                onEndAction?.invoke(animation)
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+                onCancelAction?.invoke(animation)
+            }
+
+            override fun onAnimationStart(animation: Animator?) {
+                onStartAction?.invoke(animation)
+            }
+
+        }
+
+    private fun createAnimatorPauseListener() = object: Animator.AnimatorPauseListener {
+        override fun onAnimationPause(animation: Animator?) {
+            onPauseAction?.invoke(animation)
+        }
+
+        override fun onAnimationResume(animation: Animator?) {
+            onResumeAction?.invoke(animation)
+        }
+    }
+
+    fun onRepeat(action: (Animator?) -> Unit) {
+        if (animatorListener == null) animatorListener = createAnimatorListener().also { animator.addListener(it) }
+        onRepeatAction = action
+    }
+
+    fun onEnd(action: (Animator?) -> Unit) {
+        if (animatorListener == null) animatorListener = createAnimatorListener().also { animator.addListener(it) }
+        onEndAction = action
+    }
+
+    fun onCancel(action: (Animator?) -> Unit) {
+        if (animatorListener == null) animatorListener = createAnimatorListener().also { animator.addListener(it) }
+        onCancelAction = action
+    }
+
+    fun onStart(action: (Animator?) -> Unit) {
+        if (animatorListener == null) animatorListener = createAnimatorListener().also { animator.addListener(it) }
+        onStartAction = action
+    }
+
+    fun onPause(action: (Animator?) -> Unit) {
+        if (animatorPauseListener == null) animatorPauseListener = createAnimatorPauseListener().also { animator.addPauseListener(it) }
+        onPauseAction = action
+    }
+
+    fun onResume(action: (Animator?) -> Unit) {
+        if (animatorPauseListener == null) animatorPauseListener = createAnimatorPauseListener().also { animator.addPauseListener(it) }
+        onResumeAction = action
+    }
 }
 
 class AnimSet : Anim() {
