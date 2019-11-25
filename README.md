@@ -11,9 +11,6 @@ val valueAnimator =
         values = floatArrayOf(0f, 360f)
         repeatMode = ValueAnimator.RESTART
         repeatCount = ValueAnimator.INFINITE
-        evaluator { fraction, startValue, endValue ->
-            (endValue as Float - startValue as Float) * fraction
-        }
         doOnValueUpdated {
             ivLoading.rotation = it as Float
         }

@@ -66,9 +66,6 @@ class DSLAnimatorActivity: AppCompatActivity(), View.OnClickListener {
             values = floatArrayOf(0f, 360f)
             repeatMode = ValueAnimator.RESTART
             repeatCount = ValueAnimator.INFINITE
-            evaluator { fraction, startValue, endValue ->
-                (endValue as Float - startValue as Float) * fraction
-            }
             doOnValueUpdated {
                 ivLoading.rotation = it as Float
             }
@@ -99,9 +96,6 @@ class DSLAnimatorActivity: AppCompatActivity(), View.OnClickListener {
             interpolator = BounceInterpolator()
             valueAnim {
                 values = floatArrayOf(0f, 1f)
-                evaluator { fraction, startValue, endValue ->
-                    (endValue as Float - startValue as Float) * fraction
-                }
                 doOnValueUpdated {
                     ivLoading.alpha = it as Float
                 }
