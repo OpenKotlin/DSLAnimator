@@ -1,3 +1,3 @@
 include("app", "dslanimator")
-rootProject.name="KotlinIsGreat"
+rootProject.name="DSLAnimator"
 rootProject.buildFileName = "build.gradle.kts"
